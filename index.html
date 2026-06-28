@@ -70,9 +70,9 @@ textarea { resize: none; min-height: 72px; line-height: 1.7; }
 /* Layer 2 card */
 .l2 { margin-bottom: 48px; }
 #shareCard {
-  width: 100%; aspect-ratio: 3/4; background: #0e0e0e;
+  width: 100%; min-height: 860px; background: #0e0e0e;
   position: relative; overflow: hidden; display: flex;
-  flex-direction: column; padding: 52px 44px 44px; border-radius: 4px;
+  flex-direction: column; padding: 48px 42px 40px; border-radius: 4px;
 }
 .cbglines {
   position: absolute; inset: 0;
@@ -86,10 +86,11 @@ textarea { resize: none; min-height: 72px; line-height: 1.7; }
 .ctypewhy { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.7; margin-top: 8px; }
 .crule { width: 24px; height: 1px; background: var(--gold); margin: 20px 0; }
 .ctagline { font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.9; font-weight: 300; }
-.cpositions { margin-top: 28px; display: flex; flex-direction: column; gap: 8px; }
-.cpositem { display: flex; gap: 10px; align-items: flex-start; }
-.cposlabel { font-size: 9px; letter-spacing: .1em; color: var(--gold); text-transform: uppercase; flex-shrink: 0; padding-top: 2px; min-width: 44px; }
-.cposval { font-size: 11px; color: rgba(255,255,255,.55); line-height: 1.6; }
+.position-title { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(184,150,90,.28); font-size: 10px; letter-spacing: .18em; color: rgba(184,150,90,.85); }
+.cpositions { margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 9px; }
+.cpositem { border: 1px solid rgba(184,150,90,.2); background: rgba(255,255,255,.035); border-radius: 3px; padding: 11px 12px 12px; }
+.cposlabel { display: block; font-size: 10px; letter-spacing: .14em; color: var(--gold); margin-bottom: 5px; }
+.cposval { display: block; font-size: 11px; color: rgba(255,255,255,.68); line-height: 1.58; }
 .cbottom { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.07); display: flex; justify-content: space-between; align-items: flex-end; }
 .csig { font-size: 12px; color: rgba(255,255,255,.5); font-style: italic; line-height: 1.6; max-width: 68%; }
 .ccredit { font-size: 9px; color: rgba(184,150,90,.5); letter-spacing: .08em; text-align: right; line-height: 1.8; }
@@ -114,7 +115,7 @@ textarea { resize: none; min-height: 72px; line-height: 1.7; }
 .pcontent { font-size: 14px; color: var(--ink-soft); line-height: 1.85; white-space: pre-wrap; }
 @media(max-width:600px){
   header{padding:28px 20px 24px;} .main{padding:32px 16px 60px;}
-  #shareCard{padding:36px 28px 32px;} .ctypename{font-size:20px;}
+  #shareCard{padding:34px 24px 30px; min-height: 900px;} .ctypename{font-size:20px;}
 }
 </style>
 </head>
@@ -266,7 +267,7 @@ textarea { resize: none; min-height: 72px; line-height: 1.7; }
   </div>
 
   <div class="l2">
-    <div class="eyebrow">你的IP定位卡片</div>
+    <div class="eyebrow">自媒体账号人设定位表</div>
     <div id="shareCard">
       <div class="cbglines"></div>
       <div class="cbrand">景上AI医美</div>
@@ -277,6 +278,7 @@ textarea { resize: none; min-height: 72px; line-height: 1.7; }
       </div>
       <div class="crule"></div>
       <div class="ctagline" id="ctagline"></div>
+      <div class="position-title">自媒体账号定位表</div>
       <div class="cpositions" id="cpositions"></div>
       <div class="cbottom">
         <div class="csig" id="csig"></div>
@@ -378,7 +380,7 @@ function buildReport(a){
     '【优势点：不是讲漂亮，是讲状态】','这来自你的回答：'+cite(emotional),'这意味着：你的表达不能停留在五官、线条、项目名，而要讲“一个人为什么突然想变美”“对方真正怕的是什么”“对方想找回的状态是什么”。这会让你的内容更像人，而不是项目说明书。','',
     '【优势点：审美有边界，不讨好焦虑】','这来自你的回答：'+cite(aesthetic),'这意味着：你最有价值的地方，是敢于告诉求美者什么不必做、什么不能过度、什么应该保留。这个边界感，就是你的人设资产。','',
     '【总结句】',summary,'',
-    '【部分二：定位卡片】','【人设类型】'+d.type,'【判断依据】','你的回答里最突出的不是单一技术，而是你面对求美者需求时的判断方式。你会理解求美者为什么焦虑，但你不会顺着焦虑继续放大项目；你会给出方向，也会保留边界。所以你更适合做一个让人信任的“判断型医生IP”，而不是单纯案例型或销售型医生。','【类型对比】','如果是共情型，重点是“我懂你”；如果是专家型，重点是“我比你懂”；如果是观察型，重点是“我看见行业问题”。而你的核心更像导师型：你能把求美者从情绪里带出来，告诉对方怎么更清醒地看自己。','【人设一句话】',tagline,'【品相定位】',d.field+'、审美边界、求美决策、状态改善、不过度医美。','【人群定位】','你最适合吸引'+d.audience+'。这些求美者不是单纯想找一个便宜项目，而是想找一个能帮自己判断“我这样是不是做过了”“我到底该不该做”“我怎样才更像自己”的医生。','【市场定位】','你在市场里应该占据的位置是：'+d.field+'里的清醒判断者。你不是靠强刺激吸引人，而是靠稳定、具体、有边界的表达，让求美者觉得“你不会把我往过度里推”。','【价格定位】','你的价值感不适合走低价感。你卖的不是一个单点项目，而是判断、取舍、审美安全感和长期信任。越是害怕做错、害怕做过头、害怕失去自己样子的求美者，越会被你的表达吸引。','【做IP能给你什么】','做IP对你最大的意义，不是把你变成流量医生，而是把你的判断力从机构和项目里拎出来，让求美者记住你这个人。当别人想到'+d.field+'、自然感、不过度、会判断时，能想到你，这就是你的人设价值。','【给自己的话】',shortAnswer(firstMemory,28),'',
+    '【部分二：定位卡片】','【人设类型】'+d.type,'【判断依据】','你的回答里最突出的不是单一技术，而是你面对求美者需求时的判断方式。你会理解求美者为什么焦虑，但你不会顺着焦虑继续放大项目；你会给出方向，也会保留边界。所以你更适合做一个让人信任的“判断型医生IP”，而不是单纯案例型或销售型医生。','【类型对比】','如果是共情型，重点是“我懂你”；如果是专家型，重点是“我比你懂”；如果是观察型，重点是“我看见行业问题”。而你的核心更像导师型：你能把求美者从情绪里带出来，告诉对方怎么更清醒地看自己。','【人设一句话】',tagline,'【品相定位】','你的账号品相应该是“'+d.field+' + 审美判断 + 不过度医美”。你不是单纯展示项目效果的账号，而是把案例、审美边界、术前取舍、状态改善放在一起讲，让求美者看到你的专业不是手法堆砌，而是判断体系。','【人群定位】','你最适合吸引'+d.audience+'。这些求美者不是单纯想找一个便宜项目，而是想找一个能帮自己判断“我这样是不是做过了”“我到底该不该做”“我怎样才更像自己”的医生。你的内容要让她们觉得：你理解她们想变好的心情，也能替她们守住不过度的边界。','【市场定位】','你在市场里应该占据的位置是：'+d.field+'里的清醒判断者。你不是靠强刺激、夸张对比或低价项目吸引人，而是靠稳定、具体、有边界的表达，让求美者觉得“你不会把我往过度里推”。这个位置适合长期建立信任，而不是短期制造冲动。','【价格定位】','你的价格定位不适合走低价感，更适合中高客单价的信任型服务。因为你卖的不是一个单点项目，而是判断、取舍、审美安全感和长期陪伴。越是害怕做错、害怕做过头、害怕失去自己样子的求美者，越会愿意为你的判断付费。','【做IP能给你什么】','做IP对你最大的意义，不是把你变成流量医生，而是把你的判断力从机构和项目里拎出来，让求美者记住你这个人。当别人想到'+d.field+'、自然感、不过度、会判断时，能想到你；当你离开某个机构或某个项目时，别人仍然愿意因为你的审美判断来找你，这就是你的人设价值。','【给自己的话】',shortAnswer(firstMemory,28),'',
     '【部分三：完整人设卡】','【医生基本信息】','年龄段：'+(a.q1||'未填写')+'\n婚育状态：'+(a.q2||'未填写')+'\n工作状态：'+(a.q3||'未填写')+'\n从业年限与客群：'+(a.q4||'未填写'),'【婚育对内容的影响】','你的表达底色带着'+d.temperament+'。这会让你在讲医美时，不只是讲脸，而是讲状态、身份变化、自我感和边界。','【核心主张】','你一直在说的不是“变得更漂亮”，而是“不要为了变美失去自己”。你的人设核心，是帮求美者在冲动、焦虑和营销里重新找回判断。','【语言风格】','你适合直接、笃定、有分寸。你可以温和，但不能软；可以共情，但不能陷入安慰；可以专业，但不要变成术语堆砌。','【差异化定位】','你和同类医生的差距，不是项目更多，而是更敢做判断。你的内容要让人记住：你会拦人，会解释为什么不该过度，会保护求美者原本的识别度。','【内容边界】','你适合讲审美判断、不过度、修复前反思、状态改善、求美者焦虑、保留自我。不适合讲夸张逆袭、年龄羞辱、模板脸、强刺激对比和纯项目促销。','【核心母题】','1. 变美不是换一张脸，而是找回状态。\n2. 好医生不只是会做，也知道什么时候不该做。\n3. 自然不是没变化，而是变化后仍然像你。\n4. 真正的审美，是能在焦虑里守住边界。','【最适合的开头方式】','“有些人不是不够美，是被焦虑推着做过头了。”','【素材方向】','你最适合沉淀咨询中“被拦住”的瞬间、做减法的案例、求美者从焦虑到清醒的对话、以及关于自然感和边界感的判断片段。这些素材最能支撑你的IP形象。','',
     '【部分四：IP呈现方式】','【别人会感受到什么】','别人刷到你时，最应该感受到：你很清醒，不会顺着求美者的焦虑推项目；你懂对方想变好的心情，但你更在意对方不要做过头。你的账号要给人的第一感觉，是“被稳住”，不是“被刺激”。','【最适合的表达气质】','你的表达气质应该是'+d.contentFeel+'。不要把自己包装成热闹的销售型医生，也不要变成高高在上的专家。最适合你的状态，是像诊室里那个认真看着求美者、敢说真话的人。','【适合反复讲什么】','你适合反复讲：什么是真自然、什么时候该少做、为什么不要急着改脸、怎样保留识别度、求美者的焦虑从哪里来、医生为什么有时要说“不”。这些内容会不断强化你的IP形象。','【不适合呈现什么】',d.notFit+'。一旦你用太多夸张对比、太多项目卖点、太多“变年轻变漂亮”的泛化表达，你最珍贵的清醒感就会被稀释。'
   ].join('\n');
@@ -394,7 +396,7 @@ function renderReport(text){
   document.getElementById('ctypewhy').innerHTML=esc(ex(text,'判断依据')).replace(/\n/g,'<br>');
   document.getElementById('ctagline').textContent=ex(text,'人设一句话')||'';
   document.getElementById('csig').textContent=ex(text,'给自己的话')||'';
-  const pos=[{l:'品相',k:'品相定位'},{l:'人群',k:'人群定位'},{l:'市场',k:'市场定位'},{l:'价格',k:'价格定位'},{l:'IP价值',k:'做IP能给你什么'}];
+  const pos=[{l:'品相定位',k:'品相定位'},{l:'人群定位',k:'人群定位'},{l:'市场定位',k:'市场定位'},{l:'价格定位',k:'价格定位'},{l:'IP价值',k:'做IP能给你什么'}];
   document.getElementById('cpositions').innerHTML=pos.map(p=>{const v=ex(text,p.k);return v?'<div class="cpositem"><span class="cposlabel">'+esc(p.l)+'</span><span class="cposval">'+esc(v).replace(/\n/g,' ')+'</span></div>':'';}).join('');
   const pfs=['医生基本信息','婚育对内容的影响','核心主张','语言风格','差异化定位','内容边界','核心母题','最适合的开头方式','素材方向'];
   document.getElementById('profileDoc').innerHTML=pfs.map(k=>{const v=ex(text,k);return v?'<div class="pblock"><div class="plbl">'+esc(k)+'</div><div class="pcontent">'+esc(v).replace(/\n/g,'<br>')+'</div></div>':'';}).join('');

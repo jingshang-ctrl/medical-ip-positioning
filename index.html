@@ -313,7 +313,89 @@ function upd(){
 }
 document.addEventListener('input',upd);
 
-function ex(text,key){const r=new RegExp('【'+key+'】([\\s\\S]*?)(?=【|$)');const m=text.match(r);return m?m[1].trim():'';}
+function ex(text,key){
+  const safeKey=key.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+  const r=new RegExp('【'+safeKey+'】([\\s\\S]*?)(?=【|$)');
+  const m=text.match(r);
+  return m?m[1].trim():'';
+}
+
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function pick(a,keys,rules){
+  const text=keys.map(k=>a[k]||'').join(' ');
+  for(const [word,value] of rules){ if(text.includes(word))return value; }
+  return rules[0][1];
+}
+
+function shortAnswer(text,max=42){
+  const t=(text||'').replace(/\s+/g,'').replace(/[。！？；，、,.!?;:：]/g,'');
+  return t.length>max?t.slice(0,max)+'……':t;
+}
+
+function analyzeDoctor(a){
+  const all=Object.values(a).join(' ');
+  const isMarriedWithChild=a.q2.includes('孩子');
+  const isUnmarried=a.q2.includes('未婚');
+  const isClinicOwner=a.q3.includes('自己');
+  const has=(words)=>words.some(w=>all.includes(w));
+  let type='导师型';
+  if(has(['修复','做坏','失败','填太满','过头','减法'])&&has(['判断','边界','标准','逻辑','整体']))type='专家型';
+  if(has(['哭','焦虑','沉重','无力','陪伴'])&&!has(['判断','边界','标准']))type='共情型';
+  if(all.includes('观察')||all.includes('趋势')||all.includes('反常识'))type='观察型';
+  if(has(['判断','边界','标准','逻辑'])&&has(['哭','焦虑','沉重','产后']))type='导师型';
+  const field=pick(a,['q4','q8','q9','q19'],[
+    ['抗衰','轻抗衰'],['注射','注射微整'],['修复','修复与审美重建'],['轮廓','轮廓微调'],['皮肤','皮肤年轻化'],['眼','眼周年轻化'],['鼻','鼻部精细化'],['脂肪','脂肪塑形'],['自然','自然感医美']
+  ]);
+  const stance=has(['自然','少做','克制','保留','不像','过度','模板','识别度','状态'])?'自然、克制、保留识别度':'先判断需求，再给出稳妥方案';
+  const audience=isMarriedWithChild?'30到45岁、经历过婚育或职场压力、开始重新在意状态的成熟女性':isUnmarried?'25到35岁、第一次认真考虑医美、既想变好又害怕过度的年轻求美者':'28到40岁、在关系和职业变化中重新审视外貌状态的女性';
+  const voice=isMarriedWithChild?'你说话里有一种经历过生活之后的笃定感，不急着哄人，也不会把焦虑继续放大。':isUnmarried?'你更像同龄朋友里的清醒提醒者，能用平等、直接、不端着的方式把风险讲明白。':'你既能理解女性对变化的敏感，也能保持医生该有的边界和判断。';
+  const mainPlatform=type==='观察型'?'抖音':type==='导师型'?'公众号':'小红书';
+  const format=mainPlatform==='公众号'?'长文和案例拆解':mainPlatform==='抖音'?'短视频口播':'图文笔记和图文轮播';
+  const market=type==='专家型'?'品相专家型':type==='观察型'?'细分赛道型':type==='共情型'?'同龄共情型':'导师型IP';
+  const price=type==='专家型'||isClinicOwner?'中高到高客单价':'中高客单价';
+  return {type,field,stance,audience,voice,mainPlatform,format,market,price};
+}
+
+function buildReport(a){
+  const d=analyzeDoctor(a);
+  const casePoint=shortAnswer(a.q8||a.q5||a.q10||a.q19||'你在回答里反复提到真实咨询和具体案例');
+  const signature=shortAnswer(a.q21||a.q18||'把人带回更像自己的状态',24);
+  const portrait='你不是一个只靠项目和案例说服人的医生。你真正有辨识度的地方，是能把求美者从“我是不是还要再做一点”的焦虑里拉回来，先帮她判断什么值得做、什么应该停。'+d.voice+'你最适合把自己的专业做成一种清醒的审美判断，而不是热闹的项目展示。';
+  const tagline=d.field+'里的'+d.stance+'型医生';
+  const firstLine=a.q5?'“她来咨询时不是想变成别人，她只是觉得自己不像自己了。”':'“有些脸不是不够美，是被焦虑推着做过头了。”';
+  const avoidExample='比如只说“我追求自然、拒绝夸张”，这句话太像所有医生都会说的话。你要改成具体判断：“'+shortAnswer(a.q19||a.q11||'什么时候该少做，什么时候该先停',34)+'”。';
+  return [
+    '【部分一：品牌优势】','【总画像】',portrait,'',
+    '【优势点：判断先于项目】','这来自你的回答：'+shortAnswer(a.q9||a.q19||'你强调差异不只是技术，而是判断和取舍')+'。','这意味着：你的内容不应该只讲“我能做什么项目”，而要讲“为什么这个人现在不该这样做”。当你把判断标准讲清楚，求美者会因为你敢做取舍而信任你。','',
+    '【优势点：能看见状态背后的人】','这来自你的回答：'+shortAnswer(a.q5||a.q15||a.q16||'你不只看脸，也会看求美者当时的情绪和人生处境')+'。','这意味着：你适合服务的不是单纯比价的人，而是希望被认真理解、希望有人帮她稳住判断的人。你的内容要多讲真实场景，而不是只讲术语。','',
+    '【优势点：审美有边界】','这来自你的回答：'+shortAnswer(a.q11||a.q13||a.q14||'你在回答里表现出明显的边界感，这会成为你的内容信任来源')+'。','这意味着：你可以成为一个替求美者守住审美边界的医生IP。你不是制造焦虑的人，而是帮她们从焦虑里出来的人。','',
+    '【总结句】','你最适合成为一个“'+tagline+'”IP：不靠夸张改变吸引人，而靠清醒、具体、敢做判断建立信任。','',
+    '【部分二：定位卡片】','【人设类型】'+d.type,'【判断依据】','你不是单纯展示技术的人，因为你的回答里反复出现“判断、边界、取舍、求美者状态”这些信息。你也不是只做情绪陪伴的人，你会给出明确意见，让求美者知道哪些事值得做，哪些事不能被焦虑推着做。','【类型对比】','你和共情型不同：你不只说“我懂你”，你会把下一步该不该做讲清楚。你和专家型不同：你的权威感不是靠术语堆出来，而是靠真实场景里的判断。你和观察型不同：你不靠尖锐观点破圈，而靠长期稳定的信任积累。','【人设一句话】',tagline,'【品相定位】',d.field+'、审美判断、术前取舍、案例复盘、求美者决策避坑。','【人群定位】','你最适合服务'+d.audience+'。她们不是只想买一个项目，而是想知道自己到底该不该做、做多少、怎么做才不会失去原来的识别度。'+d.voice,'【市场定位】',d.market+'。你的市场位置不是低价项目医生，而是帮求美者建立判断标准的人。你越能把“为什么不做、为什么少做、为什么先观察”讲清楚，越容易被高质量求美者记住。','【价格定位】',d.price+'更适合你。你的价值不在单个项目便宜，而在减少错误决策、降低修复风险、提供整体判断。愿意为审美判断付费的人，才是你的核心人群。','【做IP能给你什么】','如果没有个人品牌，你的判断力很容易被机构、项目和促销话术稀释。技术再好，求美者记住的也可能只是机构名字，不是你这个人。\n\n做IP之后，你真正得到的不是粉丝数，而是议价能力和选择权。你可以选择服务谁，可以决定自己值多少钱，也可以让求美者因为你的判断来找你，而不是因为某个项目折扣来找你。\n\n你的优势特别适合做长期信任型IP：你会影响那些正处在焦虑节点的女性，让她们在做医美前先停一下、想清楚。你占据的位置，是“'+d.field+'里的审美判断者”。','【给自己的话】',signature,'',
+    '【部分三：完整人设卡（内部版）】','【医生基本信息】','年龄段：'+(a.q1||'未填写')+'\n婚育状态：'+(a.q2||'未填写')+'\n工作状态：'+(a.q3||'未填写')+'\n从业年限与客群：'+(a.q4||'未填写'),'【婚育对内容的影响】',d.voice+'这会影响你的内容底色：你不适合装成永远热闹、永远兴奋的销售型医生，而适合用稳定、具体、有生活感的表达去讲求美决策。','【核心主张】','医美不是把人改成模板，而是在保留识别度的前提下改善状态。真正重要的是判断什么时候做、做多少、什么时候不做。','【语言风格】','你的语言应该直接、具体、有边界。少用“变美逆袭”这种大词，多用诊室里真实发生过的场景、求美者说过的话、你当时为什么拦住她。','【差异化定位】','你和同类医生真正的差距在于“判断力”。你不把每个需求都拆成项目，而是先看这个人真正的问题是什么，再决定技术该不该介入。','【内容边界】','适合讲真实案例、审美误区、术前判断、修复逻辑、项目取舍、女性状态。不适合制造年龄焦虑、展示夸张前后对比、追逐模板化审美。','【核心母题】','1. 少做一点，也可能更像自己。\n2. 好医生不只会做项目，也会判断不该做什么。\n3. 求美者需要的不是被继续催促，而是被帮忙稳住判断。','【最适合的开头方式】',firstLine,'【素材方向】','你最应该积累四类素材：咨询中被你劝退或改方案的案例、做减法之后状态更好的案例、修复前判断案例、求美者从焦虑变清醒的对话片段。它们最能证明你的判断力，而不是只证明技术。','',
+    '【部分四：行动指南】','【第一条内容怎么做】','从这个点开始：'+casePoint+'。它能把你的专业从“我会做项目”拉到“我能判断什么该做”。\n第一条内容开头可以直接用：'+firstLine+'\n这个开头适合你，因为它先呈现你对人的理解，再呈现你的专业判断，不会像普通自我介绍那样空。','【你的主阵地】','你的主阵地建议先放在'+d.mainPlatform+'。你的内容气质适合'+d.format+'，重点不是每天发很多，而是持续输出能被收藏、能被转给朋友看的判断标准。','【你这个类型最容易踩的坑】','你最容易踩的坑，是把“自然”和“克制”讲得太泛，最后变成所有医生都能说的空话。'+avoidExample+'\n避坑方法是：每条内容都绑定一个具体判断场景，明确说出什么情况该做、什么情况该少做、什么情况要先停。','【你大概多久能看到效果】','如果连续输出6到8周，你会先看到收藏、私信质量和咨询问题的变化，而不是单纯粉丝暴涨。方向对了的信号是：有人说“这说的就是我”、有人截图保存你的判断标准、有人带着明确问题来咨询。需要调整的信号是：点赞有但私信少，说明内容共情够了，但判断标准还不够具体。'
+  ].join('\n');
+}
+
+function renderReport(text){
+  window._ft=text;
+  document.getElementById('portrait').innerHTML='<p>'+esc(ex(text,'总画像')).replace(/\n/g,'<br>')+'</p>';
+  const advMs=[...text.matchAll(/【优势点[：:](.*?)】([\s\S]*?)(?=【优势点|【总结句】|【部分二|$)/g)];
+  document.getElementById('advlist').innerHTML=advMs.map(m=>'<div class="advitem"><div class="advlabel">'+esc(m[1].trim())+'</div><div class="advtext">'+m[2].trim().split('\n').filter(l=>l.trim()).map(esc).join('<br>')+'</div></div>').join('');
+  document.getElementById('summarybox').innerHTML='<p>'+esc(ex(text,'总结句')).replace(/\n/g,'<br>')+'</p>';
+  document.getElementById('ctype').textContent=ex(text,'人设类型')||'导师型';
+  document.getElementById('ctypewhy').innerHTML=esc(ex(text,'判断依据')).replace(/\n/g,'<br>');
+  document.getElementById('ctagline').textContent=ex(text,'人设一句话')||'';
+  document.getElementById('csig').textContent=ex(text,'给自己的话')||'';
+  const pos=[{l:'品相',k:'品相定位'},{l:'人群',k:'人群定位'},{l:'市场',k:'市场定位'},{l:'价格',k:'价格定位'},{l:'IP价值',k:'做IP能给你什么'}];
+  document.getElementById('cpositions').innerHTML=pos.map(p=>{const v=ex(text,p.k);return v?'<div class="cpositem"><span class="cposlabel">'+esc(p.l)+'</span><span class="cposval">'+esc(v).replace(/\n/g,' ')+'</span></div>':'';}).join('');
+  const pfs=['医生基本信息','婚育对内容的影响','核心主张','语言风格','差异化定位','内容边界','核心母题','最适合的开头方式','素材方向'];
+  document.getElementById('profileDoc').innerHTML=pfs.map(k=>{const v=ex(text,k);return v?'<div class="pblock"><div class="plbl">'+esc(k)+'</div><div class="pcontent">'+esc(v).replace(/\n/g,'<br>')+'</div></div>':'';}).join('');
+  const afs=[{k:'第一条内容怎么做',l:'你的第一条内容'},{k:'你的主阵地',l:'你的主阵地平台'},{k:'你这个类型最容易踩的坑',l:'你最容易踩的坑'},{k:'你大概多久能看到效果',l:'效果预期与信号判断'}];
+  document.getElementById('actionDoc').innerHTML=afs.map(f=>{const v=ex(text,f.k);return v?'<div class="actionitem"><div class="actionitem-label">'+esc(f.l)+'</div><div class="actionitem-content">'+esc(v).replace(/\n/g,'<br>')+'</div></div>':'';}).join('');
+}
 
 async function submitForm(){
   const a={};qIds.forEach(id=>{a[id]=(document.getElementById(id)?.value||'').trim();});
@@ -324,203 +406,11 @@ async function submitForm(){
   document.getElementById('loadScreen').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
   const steps=['ls1','ls2','ls3','ls4'];let si=0;
-  const iv=setInterval(()=>{if(si>0)document.getElementById(steps[si-1]).className='lstep done';if(si<steps.length){document.getElementById(steps[si]).className='lstep active';si++;}else clearInterval(iv);},1500);
-
-  const prompt=`你是一位深度了解医美行业的IP策略师。根据以下医生的回答，输出三个部分。
-
-医生基本信息：
-年龄段：${a.q1||'未填'} | 婚育：${a.q2||'未填'} | 工作：${a.q3||'未填'}
-从业背景和客群：${a.q4||'未填'}
-
-人格气质：
-Q5 求美者哭过的经历：${a.q5||'未填'}
-Q6 想过转行/为何留下：${a.q6||'未填'}
-Q7 朋友vs陌生人咨询：${a.q7||'未填'}
-
-专业能力：
-Q8 最满意的案例：${a.q8||'未填'}
-Q9 与同行的差异：${a.q9||'未填'}
-Q10 修复案例：${a.q10||'未填'}
-
-审美理念：
-Q11 如何定义自然：${a.q11||'未填'}
-Q12 对美的看法变化：${a.q12||'未填'}
-Q13 内心反对的趋势：${a.q13||'未填'}
-
-对求美者的态度：
-Q14 拒绝求美者：${a.q14||'未填'}
-Q15 最让你沉重的类型：${a.q15||'未填'}
-Q16 希望带走什么：${a.q16||'未填'}
-
-从业动机：
-Q17 医美消失会做什么：${a.q17||'未填'}
-Q18 真正有价值的是什么：${a.q18||'未填'}
-
-定位：
-Q19 为什么应该选你：${a.q19||'未填'}
-Q20 内容边界：${a.q20||'未填'}
-Q21 希望被记住的一句话：${a.q21||'未填'}
-
-━━ 输出要求 ━━
-
-重要前提：
-- 部分一和部分二全程用"你"作为第一人称，直接对这位医生说话，像是在告诉他自己的事
-- 部分三是内部人设卡，用第三人称客观描述，供内容策略使用
-- 婚育状态必须真正影响输出内容：有孩子的医生有"过来人"质感，说话有一种经历过才懂的笃定；未婚未育的医生和求美者更像同龄朋友关系，共情方式更平等；已婚未育的医生对颜值焦虑的理解处于两者之间。这个差异要体现在语言风格和人群定位里。
-
-【部分一：品牌优势】
-先输出【总画像】：用"你"直接对医生说，3句话说清楚你是什么样的人。让他读完觉得"说的就是我"。语言有力，不空洞夸奖。
-
-然后输出3到4个优势点，每个格式：
-【优势点：标题6字以内】
-这来自你的回答：具体指出是哪个回答，说了什么
-这意味着：这个特质放在内容上对你意味着什么，用"你"来说
-
-最后输出【总结句】：用"你"告诉他，这些特质组合在一起，你最适合成为什么样的IP。一句话，有气质。
-
-【部分二：定位卡片】
-全程用"你"，像一份诊断报告直接告诉这位医生他的定位。
-
-【人设类型】共情型/导师型/观察型/专家型 选一个
-【判断依据】为什么你是这个类型，2到3句，有具体依据，用"你"来说
-【类型对比】你和其他三种类型的核心不同点，用对比方式说清楚，用"你"
-【人设一句话】描述你是谁，20字以内，有气质不空洞
-【品相定位】你最适合深耕的内容品相方向
-【人群定位】你最能共情、最适合服务的人群。必须结合年龄和婚育状态来判断：有孩子的医生天然和同龄已育女性有共鸣；未婚医生和年轻求美者更像朋友；已婚未育的医生对"结婚后开始在意外貌"这个节点有独特共情。要具体说出你的人群画像。
-【市场定位】你在市场里的位置，从以下选一个并说明原因：品相专家型/导师型IP/同龄共情型/精英服务型/大众信任型/细分赛道型
-【价格定位】基于你的定位，你适合什么价位段，为什么
-【做IP能给你什么】
-这个字段的核心不是给建议，是给信心。语气是在对他说话，不是在分析他。
-
-必须包含三个层次：
-
-第一层：命名他的现实处境
-直接说出大多数医生的真实困境——技术再好，没有个人品牌，你的价值只属于机构，不属于你自己。离开这家机构，你的客户不跟你走，你的积累归零。这句话要说出来，让他感觉被看见。
-
-第二层：做IP之后真正能得到什么
-不是粉丝数，不是流量，是议价能力和选择权。具体说：你能选择服务谁，你能决定自己值多少钱，你能在任何机构都带着属于你自己的客户，你能在离开任何一家机构之后还有人找你。这是最打动医生的点，要说得具体有力。
-
-第三层：基于这位医生的具体优势，他能发挥什么价值
-结合他的人设类型、认知立场、技术差异化，具体说——他做起来之后能影响到哪类人，能改变哪些求美者的决策方式，他的判断和理念能在行业里占据什么位置。让他感觉"我可以，而且我值得"。
-
-禁止出现：机构签约IP、多点执业、行业导师这类选项。这个字段的逻辑是帮他建立离开机构依赖的个人品牌，不是帮他找下一个依附的地方。
-【给自己的话】从你的回答里提炼一句只属于你的话，用你自己的语气，20字以内
-
-【部分三：完整人设卡（内部版）】
-这部分用第三人称客观描述，供内容策略内部使用。
-
-【医生基本信息】
-姓名/称呼：根据填写内容提取
-年龄段：
-婚育状态：
-工作状态：
-从业年限与客群：
-
-【婚育对内容的影响】根据婚育状态，具体说明这位医生说话的底色和共情角度——有孩子的人说话有什么质感，未婚的人又是什么气质，已婚未育的人对哪类焦虑最有共情。2到3句具体描述。
-
-【核心主张】这位医生一直在说的那件事，2到3句
-【语言风格】这位医生说话的真实气质，具体描述，禁止用"温暖亲切"这类空话
-【差异化定位】这位医生跟同类医生真正的差距，要具体
-【内容边界】适合说什么，不适合说什么
-【核心母题】所有内容背后反复出现的底层逻辑，1到2条
-【最适合的开头方式】举一个具体的内容开头例子
-【素材方向】这位医生最应该积累哪类案例素材，为什么
-
-【部分四：行动指南（给医生看，用"你"）】
-
-这部分是整份报告最有行动价值的部分。禁止给泛泛建议，每一条必须具体到这位医生身上。
-
-【第一条内容怎么做】
-要求：不是给方向，是给第一句话。
-必须包含：
-- 基于这位医生回答里最有力量的那个具体点，说明为什么从这里开始
-- 直接给出第一条内容的开头句或开场景（可以直接用），不超过40字
-- 说明这个开头为什么适合他，而不是别的开头
-
-禁止出现："建议你从擅长的方向出发""可以先做一个自我介绍"这类无效建议。
-
-【你的主阵地】
-前提：三个平台同步发是标准操作。这里要回答的是：三个平台里哪个是你最容易出第一个爆款、积累第一批精准粉丝的主阵地。
-
-判断标准：
-- 共情型：小红书，故事类内容传播快，情感共鸣容易被收藏转发
-- 导师型：公众号，长文体现判断深度，深度粉丝黏性高
-- 观察型：短视频，反常识观点在抖音有天然流量，容易破圈
-- 专家型：公众号+小红书图文并重，干货留存价值高
-
-必须包含：
-- 基于人设类型判断主阵地是哪个平台
-- 说明这个平台为什么和他的内容气质最匹配，要具体
-- 说明在这个平台上什么内容形式最适合他（图文/长文/口播/图文轮播）
-
-【你这个类型最容易踩的坑】
-要求：不是泛泛警告，是让他能对号入座的具体描述。
-必须包含：
-- 说明这个陷阱的根源是什么，为什么这个类型特别容易踩
-- 给一个具体的例子：什么样的表达方式或内容结构就是在踩坑（举一个他可能真的会写出来的例子）
-- 给一个具体的避坑方法，不是原则，是操作层面的
-
-禁止出现："要注意保持真实""不要太商业化"这类空话。
-
-【你大概多久能看到效果】
-要求：不是给一个时间范围，是给一套判断信号。
-必须包含：
-- 基于这位医生的人设类型和主阵地平台，给出现实的节奏预期
-- 说明什么信号代表方向对了——不是粉丝数，是具体的读者行为或反馈（比如：开始收到"这说的就是我"的评论，比如：有人截图保存你的某条内容）
-- 说明什么信号说明需要调整方向，以及怎么调
-
-输出语言：中文。直接输出，不要说"好的"或解释过程。`;
-
+  const iv=setInterval(()=>{if(si>0)document.getElementById(steps[si-1]).className='lstep done';if(si<steps.length){document.getElementById(steps[si]).className='lstep active';si++;}else clearInterval(iv);},450);
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    await new Promise(resolve=>setTimeout(resolve,1400));
     clearInterval(iv);steps.forEach(s=>document.getElementById(s).className='lstep done');
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error?.message||'生成失败');
-    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    window._ft=text;
-
-    // L1
-    document.getElementById('portrait').innerHTML='<p>'+(ex(text,'总画像')||'').replace(/\n/g,'<br>')+'</p>';
-    const advMs=[...text.matchAll(/【优势点[：:][^】]*】([\s\S]*?)(?=【优势点|【总结句|【部分二|$)/g)];
-    document.getElementById('advlist').innerHTML=advMs.map(m=>{
-      const ls=m[1].trim().split('\n').filter(l=>l.trim());
-      return '<div class="advitem"><div class="advlabel">'+m[0].match(/【优势点[：:](.*?)】/)[1]+'</div><div class="advtext">'+ls.join('<br>')+'</div></div>';
-    }).join('');
-    document.getElementById('summarybox').innerHTML='<p>'+(ex(text,'总结句')||'').replace(/\n/g,'<br>')+'</p>';
-
-    // L2
-    document.getElementById('ctype').textContent=ex(text,'人设类型')||'导师型';
-    document.getElementById('ctypewhy').innerHTML=(ex(text,'判断依据')||'').replace(/\n/g,'<br>');
-    document.getElementById('ctagline').textContent=ex(text,'人设一句话')||'';
-    document.getElementById('csig').textContent=ex(text,'给自己的话')||'';
-    const pos=[
-      {l:'品相',k:'品相定位'},{l:'人群',k:'人群定位'},
-      {l:'市场',k:'市场定位'},{l:'价格',k:'价格定位'},{l:'IP价值',k:'做IP能给你什么'}
-    ];
-    document.getElementById('cpositions').innerHTML=pos.map(p=>{
-      const v=ex(text,p.k);if(!v)return '';
-      return '<div class="cpositem"><span class="cposlabel">'+p.l+'</span><span class="cposval">'+v.replace(/\n/g,' ')+'</span></div>';
-    }).join('');
-
-    // L3
-    const pfs=['医生基本信息','婚育对内容的影响','核心主张','语言风格','差异化定位','内容边界','核心母题','最适合的开头方式','素材方向'];
-    document.getElementById('profileDoc').innerHTML=pfs.map(k=>{
-      const v=ex(text,k);if(!v)return '';
-      return '<div class="pblock"><div class="plbl">'+k+'</div><div class="pcontent">'+v.replace(/\n/g,'<br>')+'</div></div>';
-    }).join('');
-
-    // L4 行动指南
-    const afs=[
-      {k:'第一条内容怎么做',l:'你的第一条内容'},
-      {k:'你的主阵地',l:'你的主阵地平台'},
-      {k:'你这个类型最容易踩的坑',l:'你最容易踩的坑'},
-      {k:'你大概多久能看到效果',l:'效果预期与信号判断'}
-    ];
-    document.getElementById('actionDoc').innerHTML=afs.map(f=>{
-      const v=ex(text,f.k);if(!v)return '';
-      return '<div class="actionitem"><div class="actionitem-label">'+f.l+'</div><div class="actionitem-content">'+v.replace(/\n/g,'<br>')+'</div></div>';
-    }).join('');
-
+    renderReport(buildReport(a));
     document.getElementById('loadScreen').style.display='none';
     document.getElementById('outScreen').style.display='block';
     window.scrollTo({top:0,behavior:'smooth'});

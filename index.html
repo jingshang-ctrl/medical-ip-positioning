@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医美医生 IP 人设定位系统 · 景上AI医美</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #111; --ink-soft: #444; --ink-faint: #999;
+  --surface: #f5f4f1; --gold: #b8965a; --gold-light: #f7f0e6;
+  --border: #e8e6e1;
+  --font: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+}
+body { font-family: var(--font); background: var(--surface); color: var(--ink); min-height: 100vh; line-height: 1.7; }
+header { background: var(--ink); padding: 36px 32px 32px; text-align: center; }
+.hbrand { font-size: 11px; letter-spacing: .2em; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+header h1 { font-size: 20px; font-weight: 300; color: #fff; letter-spacing: .08em; margin-bottom: 10px; }
+header p { font-size: 13px; color: rgba(255,255,255,.45); max-width: 380px; margin: 0 auto; }
+.grule { width: 32px; height: 1px; background: var(--gold); margin: 18px auto 0; }
+.pwrap { background: var(--ink); padding: 0 32px 24px; }
+.ptrack { background: rgba(255,255,255,.1); height: 1px; max-width: 560px; margin: 0 auto; }
+.pfill { height: 100%; background: var(--gold); transition: width .4s; width: 0%; }
+.plabel { text-align: center; font-size: 11px; color: rgba(255,255,255,.35); margin-top: 10px; letter-spacing: .06em; }
+.main { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+.qblock { margin-bottom: 28px; }
+.qrow { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 10px; }
+.qnum { font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: .06em; padding-top: 3px; flex-shrink: 0; width: 20px; }
+.qtext { font-size: 15px; color: var(--ink); line-height: 1.65; }
+.qhint { font-size: 12px; color: var(--ink-faint); margin-top: 5px; padding-left: 36px; font-style: italic; }
+select, textarea {
+  width: 100%; border: none; border-bottom: 1px solid var(--border);
+  padding: 12px 0; font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: transparent; transition: border-color .2s;
+}
+select { cursor: pointer; -webkit-appearance: none; appearance: none; }
+select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+textarea { resize: none; min-height: 72px; line-height: 1.7; }
+.filled { border-color: #ccc !important; }
+.qdiv { height: 1px; background: var(--border); margin: 36px 0; position: relative; }
+.qdivlabel { position: absolute; top: -9px; left: 0; font-size: 10px; letter-spacing: .12em; color: var(--ink-faint); text-transform: uppercase; background: var(--surface); padding-right: 12px; }
+.subwrap { text-align: center; padding-top: 12px; }
+.subnote { font-size: 12px; color: var(--ink-faint); margin-bottom: 24px; }
+.btnsubmit { background: var(--ink); color: #fff; border: none; padding: 16px 52px; font-size: 14px; font-family: var(--font); letter-spacing: .1em; cursor: pointer; border-radius: 2px; transition: background .2s; }
+.btnsubmit:hover { background: #333; }
+.errbox { background: #fdf2f2; border-left: 2px solid #c0392b; padding: 14px 18px; font-size: 13px; color: #c0392b; margin-top: 20px; display: none; }
+.loadscreen { display: none; text-align: center; padding: 100px 32px; }
+.loader { width: 1px; height: 60px; background: var(--border); margin: 0 auto 40px; position: relative; overflow: hidden; }
+.loader::after { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%; background: var(--gold); animation: ll 1.2s ease-in-out infinite; }
+@keyframes ll { 0%{top:-100%} 100%{top:100%} }
+.ltitle { font-size: 16px; font-weight: 300; letter-spacing: .06em; margin-bottom: 8px; }
+.lsub { font-size: 12px; color: var(--ink-faint); }
+.lsteps { margin-top: 40px; max-width: 280px; margin-left: auto; margin-right: auto; }
+.lstep { font-size: 12px; color: var(--ink-faint); padding: 8px 0; border-bottom: 1px solid var(--border); transition: all .3s; }
+.lstep.active { color: var(--gold); }
+.lstep.done { color: var(--ink-soft); }
+.outscreen { display: none; }
+.eyebrow { font-size: 10px; letter-spacing: .16em; color: var(--gold); text-transform: uppercase; margin-bottom: 20px; }
+/* Layer 1 */
+.l1 { margin-bottom: 48px; }
+.portrait { border-left: 2px solid var(--gold); padding: 20px 24px; background: var(--gold-light); margin-bottom: 20px; border-radius: 0 4px 4px 0; }
+.portrait p { font-size: 16px; color: var(--ink); line-height: 1.9; font-weight: 300; }
+.advlist { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.advitem { padding: 16px 20px; border: 1px solid var(--border); border-radius: 4px; background: #fff; }
+.advlabel { font-size: 10px; letter-spacing: .1em; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
+.advtext { font-size: 14px; color: var(--ink-soft); line-height: 1.8; }
+.summarybox { padding: 20px 24px; background: var(--ink); border-radius: 4px; }
+.summarybox p { font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.9; }
+/* Layer 2 card */
+.l2 { margin-bottom: 48px; }
+#shareCard {
+  width: 100%; aspect-ratio: 3/4; background: #0e0e0e;
+  position: relative; overflow: hidden; display: flex;
+  flex-direction: column; padding: 52px 44px 44px; border-radius: 4px;
+}
+.cbglines {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(184,150,90,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(184,150,90,.05) 1px,transparent 1px);
+  background-size: 48px 48px; pointer-events: none;
+}
+.cbrand { font-size: 10px; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; margin-bottom: 40px; }
+.ctypelabel { font-size: 10px; letter-spacing: .14em; color: rgba(255,255,255,.3); text-transform: uppercase; margin-bottom: 8px; }
+.ctypename { font-size: 26px; font-weight: 300; color: #fff; letter-spacing: .04em; line-height: 1.3; margin-bottom: 4px; }
+.ctypename span { color: var(--gold); }
+.ctypewhy { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.7; margin-top: 8px; }
+.crule { width: 24px; height: 1px; background: var(--gold); margin: 20px 0; }
+.ctagline { font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.9; font-weight: 300; }
+.cpositions { margin-top: 28px; display: flex; flex-direction: column; gap: 8px; }
+.cpositem { display: flex; gap: 10px; align-items: flex-start; }
+.cposlabel { font-size: 9px; letter-spacing: .1em; color: var(--gold); text-transform: uppercase; flex-shrink: 0; padding-top: 2px; min-width: 44px; }
+.cposval { font-size: 11px; color: rgba(255,255,255,.55); line-height: 1.6; }
+.cbottom { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.07); display: flex; justify-content: space-between; align-items: flex-end; }
+.csig { font-size: 12px; color: rgba(255,255,255,.5); font-style: italic; line-height: 1.6; max-width: 68%; }
+.ccredit { font-size: 9px; color: rgba(184,150,90,.5); letter-spacing: .08em; text-align: right; line-height: 1.8; }
+.actrow { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.btn { padding: 12px 28px; font-size: 13px; font-family: var(--font); cursor: pointer; border-radius: 2px; letter-spacing: .06em; transition: all .15s; border: none; }
+.btndark { background: var(--ink); color: #fff; }
+.btndark:hover { background: #333; }
+.btngold { background: var(--gold); color: #fff; }
+.btngold:hover { background: #9a7a3e; }
+.btnout { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); }
+.btnout:hover { border-color: var(--ink-soft); }
+/* Layer 4 行动指南 */
+.l4 { margin-bottom: 48px; }
+.actionitem { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 24px; margin-bottom: 12px; }
+.actionitem-label { font-size: 10px; letter-spacing: .14em; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+.actionitem-content { font-size: 14px; color: var(--ink-soft); line-height: 1.85; white-space: pre-wrap; }
+.l3inner { background: #f9f8f5; border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+.l3title { font-size: 11px; letter-spacing: .12em; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.pblock { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.pblock:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.plbl { font-size: 10px; letter-spacing: .12em; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+.pcontent { font-size: 14px; color: var(--ink-soft); line-height: 1.85; white-space: pre-wrap; }
+@media(max-width:600px){
+  header{padding:28px 20px 24px;} .main{padding:32px 16px 60px;}
+  #shareCard{padding:36px 28px 32px;} .ctypename{font-size:20px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbrand">景上AI医美</div>
+  <h1>医美医生 IP 人设定位</h1>
+  <p>21个问题，找到你的个人IP品牌优势</p>
+  <div class="grule"></div>
+</header>
+<div class="pwrap">
+  <div class="ptrack"><div class="pfill" id="pf"></div></div>
+  <div class="plabel" id="pl">0 / 21</div>
+</div>
+
+<div class="main" id="formScreen">
+  <div class="qdiv"><span class="qdivlabel">先了解一下你</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">01</span><span class="qtext">你大概多大？</span></div>
+    <select id="q1"><option value="">选择……</option><option>25到30岁</option><option>30到35岁</option><option>35到40岁</option><option>40到45岁</option><option>45岁以上</option></select>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">02</span><span class="qtext">婚育状态？</span></div>
+    <select id="q2"><option value="">选择……</option><option>未婚未育</option><option>已婚未育</option><option>已婚有孩子</option><option>其他</option></select>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">03</span><span class="qtext">你现在在哪里工作？</span></div>
+    <select id="q3"><option value="">选择……</option><option>医美机构（受雇）</option><option>自己开诊所</option><option>公立医院</option><option>多点执业</option><option>其他</option></select>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">04</span><span class="qtext">做医美多少年了？现在主要服务什么样的客人？</span></div>
+    <div class="qhint">年龄段、消费能力、来自哪里都可以说</div>
+    <textarea id="q4" placeholder="比如：做了8年，主要是25到35岁的职场女性……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于你这个人</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">05</span><span class="qtext">接诊的时候，求美者哭过吗？当时发生了什么，你是怎么回应的？</span></div>
+    <div class="qhint">如果有，尽量还原当时的场景和你的感受</div>
+    <textarea id="q5" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">06</span><span class="qtext">你有没有想过转行？是什么让你留下来继续做这件事？</span></div>
+    <div class="qhint">不用说"因为热爱"，说具体发生了什么</div>
+    <textarea id="q6" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">07</span><span class="qtext">朋友来找你咨询，跟陌生求美者来找你咨询，你说话的方式一样吗？哪里不一样？</span></div>
+    <textarea id="q7" placeholder="用自己的话说……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于你的专业</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">08</span><span class="qtext">你做过一个案例，做完之后你自己特别满意——不是因为求美者满意，是你觉得做对了。那是什么案例？哪里让你觉得做对了？</span></div>
+    <textarea id="q8" placeholder="尽量有细节……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">09</span><span class="qtext">同样的需求，你的做法和大多数同行有什么不一样？你为什么这么做？</span></div>
+    <div class="qhint">不用谦虚，说真实的差异</div>
+    <textarea id="q9" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">10</span><span class="qtext">你见过被做"坏"了来找你修复的案例吗？当时你看到的时候心里什么感受？你怎么处理的？</span></div>
+    <textarea id="q10" placeholder="有的话尽量还原细节……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于美这件事</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">11</span><span class="qtext">你觉得"自然"是什么意思？什么样的结果你觉得是真的自然，什么样的是假的自然？</span></div>
+    <textarea id="q11" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">12</span><span class="qtext">做了这么多年医美，你对"美"这件事的看法变了吗？怎么变的？</span></div>
+    <div class="qhint">说刚入行时怎么想，现在又怎么想</div>
+    <textarea id="q12" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">13</span><span class="qtext">有没有一种审美趋势或者求美需求，你内心其实是反对的？为什么反对？</span></div>
+    <textarea id="q13" placeholder="用自己的话说……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于你和求美者</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">14</span><span class="qtext">你拒绝过求美者吗？最近一次是什么情况？你怎么跟她说的？她当时什么反应？</span></div>
+    <textarea id="q14" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">15</span><span class="qtext">你接诊过哪一类求美者最让你感到沉重或者无力？为什么？</span></div>
+    <div class="qhint">不是抱怨，是你真实的感受</div>
+    <textarea id="q15" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">16</span><span class="qtext">求美者来找你，你最希望她离开的时候带走什么？不只是外貌上的变化。</span></div>
+    <textarea id="q16" placeholder="用自己的话说……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于你做这件事的原因</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">17</span><span class="qtext">如果明天医美行业消失了，你觉得你会去做什么？为什么是这个？</span></div>
+    <div class="qhint">这个问题在找你做事的底层驱动</div>
+    <textarea id="q17" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">18</span><span class="qtext">你做的这件事，你觉得对求美者真正有价值的是什么？不是技术层面，是更深的东西。</span></div>
+    <textarea id="q18" placeholder="用自己的话说……"></textarea>
+  </div>
+
+  <div class="qdiv"><span class="qdivlabel">关于你的定位</span></div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">19</span><span class="qtext">同样是做你擅长方向的医生可能有几十个。求美者为什么应该选你？你觉得真正的差距在哪里？</span></div>
+    <div class="qhint">不用谦虚，也不用说"技术好"，说具体的</div>
+    <textarea id="q19" placeholder="用自己的话说……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">20</span><span class="qtext">做内容这件事，你愿意在镜头前说什么？有没有你绝对不想碰的话题或者不想展示的东西？</span></div>
+    <textarea id="q20" placeholder="说真实的……"></textarea>
+  </div>
+  <div class="qblock">
+    <div class="qrow"><span class="qnum">21</span><span class="qtext">如果只能让求美者记住你一句话，你希望是什么？</span></div>
+    <div class="qhint">说第一个冒出来的那句</div>
+    <textarea id="q21" placeholder="一句话……"></textarea>
+  </div>
+
+  <div class="errbox" id="errbox"></div>
+  <div class="subwrap">
+    <div class="subnote">建议填写 15 题以上，结果更准确</div>
+    <button class="btnsubmit" onclick="submitForm()">生成我的 IP 人设定位</button>
+  </div>
+</div>
+
+<div class="main loadscreen" id="loadScreen">
+  <div class="loader"></div>
+  <div class="ltitle">正在分析……</div>
+  <div class="lsub">找到你的个人IP品牌优势</div>
+  <div class="lsteps">
+    <div class="lstep" id="ls1">解读你的人格气质与背景</div>
+    <div class="lstep" id="ls2">分析你的专业差异化</div>
+    <div class="lstep" id="ls3">判断市场定位与IP价值</div>
+    <div class="lstep" id="ls4">生成你的IP定位文档</div>
+  </div>
+</div>
+
+<div class="main outscreen" id="outScreen">
+  <div class="l1">
+    <div class="eyebrow">你的个人IP品牌优势</div>
+    <div class="portrait" id="portrait"></div>
+    <div class="advlist" id="advlist"></div>
+    <div class="summarybox" id="summarybox"></div>
+  </div>
+
+  <div class="l2">
+    <div class="eyebrow">你的IP定位卡片</div>
+    <div id="shareCard">
+      <div class="cbglines"></div>
+      <div class="cbrand">景上AI医美</div>
+      <div>
+        <div class="ctypelabel">你的内容人设类型</div>
+        <div class="ctypename">「<span id="ctype">导师型</span>」医生IP</div>
+        <div class="ctypewhy" id="ctypewhy"></div>
+      </div>
+      <div class="crule"></div>
+      <div class="ctagline" id="ctagline"></div>
+      <div class="cpositions" id="cpositions"></div>
+      <div class="cbottom">
+        <div class="csig" id="csig"></div>
+        <div class="ccredit">景上AI医美<br>by 人间有庆</div>
+      </div>
+    </div>
+    <div class="actrow">
+      <button class="btn btngold" onclick="downloadCard()">下载定位卡片</button>
+      <button class="btn btnout" onclick="copyDoc()">复制完整文档</button>
+      <button class="btn btnout" onclick="resetForm()">重新填写</button>
+    </div>
+  </div>
+
+  <div class="l3">
+    <div class="eyebrow">完整人设卡 · 内部版</div>
+    <div class="l3inner">
+      <div class="l3title">仅供内容策略使用 · 不对外展示</div>
+      <div id="profileDoc"></div>
+    </div>
+  </div>
+
+  <div class="l4">
+    <div class="eyebrow">行动指南</div>
+    <div id="actionDoc"></div>
+  </div>
+</div>
+
+<script>
+const qIds=['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14','q15','q16','q17','q18','q19','q20','q21'];
+function upd(){
+  const f=qIds.filter(id=>{const e=document.getElementById(id);if(!e)return false;const v=e.value.trim();v?e.classList.add('filled'):e.classList.remove('filled');return v.length>0;}).length;
+  document.getElementById('pf').style.width=Math.round(f/21*100)+'%';
+  document.getElementById('pl').textContent=f+' / 21';
+}
+document.addEventListener('input',upd);
+
+function ex(text,key){const r=new RegExp('【'+key+'】([\\s\\S]*?)(?=【|$)');const m=text.match(r);return m?m[1].trim():'';}
+
+async function submitForm(){
+  const a={};qIds.forEach(id=>{a[id]=(document.getElementById(id)?.value||'').trim();});
+  const f=Object.values(a).filter(v=>v.length>0).length;
+  if(f<10){const eb=document.getElementById('errbox');eb.textContent='目前填了'+f+'题，建议至少填写15题。';eb.style.display='block';eb.scrollIntoView({behavior:'smooth',block:'center'});return;}
+  document.getElementById('errbox').style.display='none';
+  document.getElementById('formScreen').style.display='none';
+  document.getElementById('loadScreen').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const steps=['ls1','ls2','ls3','ls4'];let si=0;
+  const iv=setInterval(()=>{if(si>0)document.getElementById(steps[si-1]).className='lstep done';if(si<steps.length){document.getElementById(steps[si]).className='lstep active';si++;}else clearInterval(iv);},1500);
+
+  const prompt=`你是一位深度了解医美行业的IP策略师。根据以下医生的回答，输出三个部分。
+
+医生基本信息：
+年龄段：${a.q1||'未填'} | 婚育：${a.q2||'未填'} | 工作：${a.q3||'未填'}
+从业背景和客群：${a.q4||'未填'}
+
+人格气质：
+Q5 求美者哭过的经历：${a.q5||'未填'}
+Q6 想过转行/为何留下：${a.q6||'未填'}
+Q7 朋友vs陌生人咨询：${a.q7||'未填'}
+
+专业能力：
+Q8 最满意的案例：${a.q8||'未填'}
+Q9 与同行的差异：${a.q9||'未填'}
+Q10 修复案例：${a.q10||'未填'}
+
+审美理念：
+Q11 如何定义自然：${a.q11||'未填'}
+Q12 对美的看法变化：${a.q12||'未填'}
+Q13 内心反对的趋势：${a.q13||'未填'}
+
+对求美者的态度：
+Q14 拒绝求美者：${a.q14||'未填'}
+Q15 最让你沉重的类型：${a.q15||'未填'}
+Q16 希望带走什么：${a.q16||'未填'}
+
+从业动机：
+Q17 医美消失会做什么：${a.q17||'未填'}
+Q18 真正有价值的是什么：${a.q18||'未填'}
+
+定位：
+Q19 为什么应该选你：${a.q19||'未填'}
+Q20 内容边界：${a.q20||'未填'}
+Q21 希望被记住的一句话：${a.q21||'未填'}
+
+━━ 输出要求 ━━
+
+重要前提：
+- 部分一和部分二全程用"你"作为第一人称，直接对这位医生说话，像是在告诉他自己的事
+- 部分三是内部人设卡，用第三人称客观描述，供内容策略使用
+- 婚育状态必须真正影响输出内容：有孩子的医生有"过来人"质感，说话有一种经历过才懂的笃定；未婚未育的医生和求美者更像同龄朋友关系，共情方式更平等；已婚未育的医生对颜值焦虑的理解处于两者之间。这个差异要体现在语言风格和人群定位里。
+
+【部分一：品牌优势】
+先输出【总画像】：用"你"直接对医生说，3句话说清楚你是什么样的人。让他读完觉得"说的就是我"。语言有力，不空洞夸奖。
+
+然后输出3到4个优势点，每个格式：
+【优势点：标题6字以内】
+这来自你的回答：具体指出是哪个回答，说了什么
+这意味着：这个特质放在内容上对你意味着什么，用"你"来说
+
+最后输出【总结句】：用"你"告诉他，这些特质组合在一起，你最适合成为什么样的IP。一句话，有气质。
+
+【部分二：定位卡片】
+全程用"你"，像一份诊断报告直接告诉这位医生他的定位。
+
+【人设类型】共情型/导师型/观察型/专家型 选一个
+【判断依据】为什么你是这个类型，2到3句，有具体依据，用"你"来说
+【类型对比】你和其他三种类型的核心不同点，用对比方式说清楚，用"你"
+【人设一句话】描述你是谁，20字以内，有气质不空洞
+【品相定位】你最适合深耕的内容品相方向
+【人群定位】你最能共情、最适合服务的人群。必须结合年龄和婚育状态来判断：有孩子的医生天然和同龄已育女性有共鸣；未婚医生和年轻求美者更像朋友；已婚未育的医生对"结婚后开始在意外貌"这个节点有独特共情。要具体说出你的人群画像。
+【市场定位】你在市场里的位置，从以下选一个并说明原因：品相专家型/导师型IP/同龄共情型/精英服务型/大众信任型/细分赛道型
+【价格定位】基于你的定位，你适合什么价位段，为什么
+【做IP能给你什么】
+这个字段的核心不是给建议，是给信心。语气是在对他说话，不是在分析他。
+
+必须包含三个层次：
+
+第一层：命名他的现实处境
+直接说出大多数医生的真实困境——技术再好，没有个人品牌，你的价值只属于机构，不属于你自己。离开这家机构，你的客户不跟你走，你的积累归零。这句话要说出来，让他感觉被看见。
+
+第二层：做IP之后真正能得到什么
+不是粉丝数，不是流量，是议价能力和选择权。具体说：你能选择服务谁，你能决定自己值多少钱，你能在任何机构都带着属于你自己的客户，你能在离开任何一家机构之后还有人找你。这是最打动医生的点，要说得具体有力。
+
+第三层：基于这位医生的具体优势，他能发挥什么价值
+结合他的人设类型、认知立场、技术差异化，具体说——他做起来之后能影响到哪类人，能改变哪些求美者的决策方式，他的判断和理念能在行业里占据什么位置。让他感觉"我可以，而且我值得"。
+
+禁止出现：机构签约IP、多点执业、行业导师这类选项。这个字段的逻辑是帮他建立离开机构依赖的个人品牌，不是帮他找下一个依附的地方。
+【给自己的话】从你的回答里提炼一句只属于你的话，用你自己的语气，20字以内
+
+【部分三：完整人设卡（内部版）】
+这部分用第三人称客观描述，供内容策略内部使用。
+
+【医生基本信息】
+姓名/称呼：根据填写内容提取
+年龄段：
+婚育状态：
+工作状态：
+从业年限与客群：
+
+【婚育对内容的影响】根据婚育状态，具体说明这位医生说话的底色和共情角度——有孩子的人说话有什么质感，未婚的人又是什么气质，已婚未育的人对哪类焦虑最有共情。2到3句具体描述。
+
+【核心主张】这位医生一直在说的那件事，2到3句
+【语言风格】这位医生说话的真实气质，具体描述，禁止用"温暖亲切"这类空话
+【差异化定位】这位医生跟同类医生真正的差距，要具体
+【内容边界】适合说什么，不适合说什么
+【核心母题】所有内容背后反复出现的底层逻辑，1到2条
+【最适合的开头方式】举一个具体的内容开头例子
+【素材方向】这位医生最应该积累哪类案例素材，为什么
+
+【部分四：行动指南（给医生看，用"你"）】
+
+这部分是整份报告最有行动价值的部分。禁止给泛泛建议，每一条必须具体到这位医生身上。
+
+【第一条内容怎么做】
+要求：不是给方向，是给第一句话。
+必须包含：
+- 基于这位医生回答里最有力量的那个具体点，说明为什么从这里开始
+- 直接给出第一条内容的开头句或开场景（可以直接用），不超过40字
+- 说明这个开头为什么适合他，而不是别的开头
+
+禁止出现："建议你从擅长的方向出发""可以先做一个自我介绍"这类无效建议。
+
+【你的主阵地】
+前提：三个平台同步发是标准操作。这里要回答的是：三个平台里哪个是你最容易出第一个爆款、积累第一批精准粉丝的主阵地。
+
+判断标准：
+- 共情型：小红书，故事类内容传播快，情感共鸣容易被收藏转发
+- 导师型：公众号，长文体现判断深度，深度粉丝黏性高
+- 观察型：短视频，反常识观点在抖音有天然流量，容易破圈
+- 专家型：公众号+小红书图文并重，干货留存价值高
+
+必须包含：
+- 基于人设类型判断主阵地是哪个平台
+- 说明这个平台为什么和他的内容气质最匹配，要具体
+- 说明在这个平台上什么内容形式最适合他（图文/长文/口播/图文轮播）
+
+【你这个类型最容易踩的坑】
+要求：不是泛泛警告，是让他能对号入座的具体描述。
+必须包含：
+- 说明这个陷阱的根源是什么，为什么这个类型特别容易踩
+- 给一个具体的例子：什么样的表达方式或内容结构就是在踩坑（举一个他可能真的会写出来的例子）
+- 给一个具体的避坑方法，不是原则，是操作层面的
+
+禁止出现："要注意保持真实""不要太商业化"这类空话。
+
+【你大概多久能看到效果】
+要求：不是给一个时间范围，是给一套判断信号。
+必须包含：
+- 基于这位医生的人设类型和主阵地平台，给出现实的节奏预期
+- 说明什么信号代表方向对了——不是粉丝数，是具体的读者行为或反馈（比如：开始收到"这说的就是我"的评论，比如：有人截图保存你的某条内容）
+- 说明什么信号说明需要调整方向，以及怎么调
+
+输出语言：中文。直接输出，不要说"好的"或解释过程。`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    clearInterval(iv);steps.forEach(s=>document.getElementById(s).className='lstep done');
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error?.message||'生成失败');
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    window._ft=text;
+
+    // L1
+    document.getElementById('portrait').innerHTML='<p>'+(ex(text,'总画像')||'').replace(/\n/g,'<br>')+'</p>';
+    const advMs=[...text.matchAll(/【优势点[：:][^】]*】([\s\S]*?)(?=【优势点|【总结句|【部分二|$)/g)];
+    document.getElementById('advlist').innerHTML=advMs.map(m=>{
+      const ls=m[1].trim().split('\n').filter(l=>l.trim());
+      return '<div class="advitem"><div class="advlabel">'+m[0].match(/【优势点[：:](.*?)】/)[1]+'</div><div class="advtext">'+ls.join('<br>')+'</div></div>';
+    }).join('');
+    document.getElementById('summarybox').innerHTML='<p>'+(ex(text,'总结句')||'').replace(/\n/g,'<br>')+'</p>';
+
+    // L2
+    document.getElementById('ctype').textContent=ex(text,'人设类型')||'导师型';
+    document.getElementById('ctypewhy').innerHTML=(ex(text,'判断依据')||'').replace(/\n/g,'<br>');
+    document.getElementById('ctagline').textContent=ex(text,'人设一句话')||'';
+    document.getElementById('csig').textContent=ex(text,'给自己的话')||'';
+    const pos=[
+      {l:'品相',k:'品相定位'},{l:'人群',k:'人群定位'},
+      {l:'市场',k:'市场定位'},{l:'价格',k:'价格定位'},{l:'IP价值',k:'做IP能给你什么'}
+    ];
+    document.getElementById('cpositions').innerHTML=pos.map(p=>{
+      const v=ex(text,p.k);if(!v)return '';
+      return '<div class="cpositem"><span class="cposlabel">'+p.l+'</span><span class="cposval">'+v.replace(/\n/g,' ')+'</span></div>';
+    }).join('');
+
+    // L3
+    const pfs=['医生基本信息','婚育对内容的影响','核心主张','语言风格','差异化定位','内容边界','核心母题','最适合的开头方式','素材方向'];
+    document.getElementById('profileDoc').innerHTML=pfs.map(k=>{
+      const v=ex(text,k);if(!v)return '';
+      return '<div class="pblock"><div class="plbl">'+k+'</div><div class="pcontent">'+v.replace(/\n/g,'<br>')+'</div></div>';
+    }).join('');
+
+    // L4 行动指南
+    const afs=[
+      {k:'第一条内容怎么做',l:'你的第一条内容'},
+      {k:'你的主阵地',l:'你的主阵地平台'},
+      {k:'你这个类型最容易踩的坑',l:'你最容易踩的坑'},
+      {k:'你大概多久能看到效果',l:'效果预期与信号判断'}
+    ];
+    document.getElementById('actionDoc').innerHTML=afs.map(f=>{
+      const v=ex(text,f.k);if(!v)return '';
+      return '<div class="actionitem"><div class="actionitem-label">'+f.l+'</div><div class="actionitem-content">'+v.replace(/\n/g,'<br>')+'</div></div>';
+    }).join('');
+
+    document.getElementById('loadScreen').style.display='none';
+    document.getElementById('outScreen').style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){
+    clearInterval(iv);
+    document.getElementById('loadScreen').style.display='none';
+    document.getElementById('formScreen').style.display='block';
+    const eb=document.getElementById('errbox');
+    eb.textContent='生成出错：'+err.message+'，请重试。';eb.style.display='block';eb.scrollIntoView({behavior:'smooth'});
+  }
+}
+
+async function downloadCard(){
+  const btn=event.target;btn.textContent='生成中……';btn.disabled=true;
+  try{
+    const c=await html2canvas(document.getElementById('shareCard'),{scale:3,useCORS:true,backgroundColor:'#0e0e0e',logging:false});
+    const a=document.createElement('a');a.download='IP定位卡片_景上AI医美.png';a.href=c.toDataURL('image/png');a.click();
+  }catch(e){alert('下载失败，请截图保存');}
+  btn.textContent='下载定位卡片';btn.disabled=false;
+}
+
+function copyDoc(){
+  navigator.clipboard.writeText(window._ft||'').then(()=>{
+    const btn=event.target;const o=btn.textContent;btn.textContent='已复制 ✓';setTimeout(()=>btn.textContent=o,2000);
+  });
+}
+
+function resetForm(){
+  document.getElementById('outScreen').style.display='none';
+  document.getElementById('formScreen').style.display='block';
+  qIds.forEach(id=>{const e=document.getElementById(id);if(e){e.value='';e.classList.remove('filled');}});
+  ['ls1','ls2','ls3','ls4'].forEach(s=>{const e=document.getElementById(s);if(e)e.className='lstep';});
+  upd();window.scrollTo({top:0,behavior:'smooth'});
+}
+upd();
+</script>
+</body>
+</html>
